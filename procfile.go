@@ -35,8 +35,8 @@ func ParseProcfile(r io.Reader) (*Procfile, error) {
 func (p *Procfile) Parse() error {
 	r := bufio.NewReader(p.data)
 
-  var ƒ parseStateFunc
-  ƒ = new(startLine)
+	var ƒ parseStateFunc
+	ƒ = new(startLine)
 	var k []byte
 	var v []byte
 
@@ -49,69 +49,69 @@ func (p *Procfile) Parse() error {
 			}
 			return err
 		}
-    ƒ = ƒ.parse(c, &k, &v, p)
+		ƒ = ƒ.parse(c, &k, &v, p)
 	}
 }
 
 type parseStateFunc interface {
-  parse(c byte, k *[]byte, v *[]byte, p *Procfile) parseStateFunc
+	parse(c byte, k *[]byte, v *[]byte, p *Procfile) parseStateFunc
 }
 
-type startLine struct {}
-type readType struct {}
-type endType struct {}
-type readProc struct {}
+type startLine struct{}
+type readType struct{}
+type endType struct{}
+type readProc struct{}
 
 func (s *startLine) parse(c byte, k *[]byte, v *[]byte, p *Procfile) parseStateFunc {
-  switch {
-  case isWhitespace(c):
-    return new(startLine)
-  case isValid(c):
-    *k = append(*k, c)
-    return new(readType)
-  default:
-    panic(InvalidProcessName)
-  }
+	switch {
+	case isWhitespace(c):
+		return new(startLine)
+	case isValid(c):
+		*k = append(*k, c)
+		return new(readType)
+	default:
+		panic(InvalidProcessName)
+	}
 }
 
 func (s *readType) parse(c byte, k *[]byte, v *[]byte, p *Procfile) parseStateFunc {
-  switch {
-  case isValid(c):
-    *k = append(*k, c)
-    return new(readType)
-  case c == ':':
-    return new(readProc)
-  case isIgnored(c):
-    return new(endType)
-  default:
-    panic(InvalidProcessName)
-  }
+	switch {
+	case isValid(c):
+		*k = append(*k, c)
+		return new(readType)
+	case c == ':':
+		return new(readProc)
+	case isIgnored(c):
+		return new(endType)
+	default:
+		panic(InvalidProcessName)
+	}
 }
 
 func (s *endType) parse(c byte, k *[]byte, v *[]byte, p *Procfile) parseStateFunc {
-  switch {
-  case isIgnored(c):
-    return new(endType)
-  case c == ':':
-    return new(readProc)
-  default:
-    panic(InvalidProcessName)
-  }
+	switch {
+	case isIgnored(c):
+		return new(endType)
+	case c == ':':
+		return new(readProc)
+	default:
+		panic(InvalidProcessName)
+	}
 }
 
 func (s *readProc) parse(c byte, k *[]byte, v *[]byte, p *Procfile) parseStateFunc {
-  switch c {
-  case '\n':
-    addEntry(k, v, p)
-    return new(startLine)
-  default:
-    *v = append(*v, c)
-    return new(readProc)
-  }
+	switch c {
+	case '\n':
+		addEntry(k, v, p)
+		return new(startLine)
+	default:
+		*v = append(*v, c)
+		return new(readProc)
+	}
 }
 
 func isWhitespace(c byte) bool {
-  return c == ' ' || c == '\t' || c == '\n'
+	return c == ' ' || c == '\t' || c == '\n'
 }
 
 func isIgnored(c byte) bool {
