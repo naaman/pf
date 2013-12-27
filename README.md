@@ -1,7 +1,7 @@
 pf
 ==
 
-Simple Procfile parser
+Simple Procfile parser in Go.
 
 Usage
 =====
